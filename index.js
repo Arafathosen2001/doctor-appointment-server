@@ -26,16 +26,18 @@ async function run() {
       await client.connect();
         const db = client.db('doctorAppointment');
         const collectionDoctor = db.collection('doctor');
+        const collectionBokingDoctor = db.collection('appointments');
     app.get('/doctors', async(req,res) => {
         const result = await collectionDoctor.find().toArray();
         res.send(result);
     })
-    app.get('/doctors/:did', async(req, res) => {
-      const id = req.params.did
-      console.log(id)
-      const result = await collectionDoctor.findOne({ _id: new ObjectId(id) });
-      res.send(result)
+    app.post('/appointments', async (req, res) => {
+      const bokingDoctorData = req.body;
+      const result = await collectionBokingDoctor.insertOne(bokingDoctorData)
+      res.json(result)
+      
     })
+
 
 
     await client.db("admin").command({ ping: 1 });
