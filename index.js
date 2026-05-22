@@ -44,6 +44,19 @@ async function run() {
       res.json(result)
       
     })
+    app.get('/appointments/:id', async (req, res) => {
+      const { id } = req.params;
+      const result = await collectionBokingDoctor.find({ userId: id }).toArray();
+      res.json(result)
+      // console.log(res.json(result))
+    })
+    app.patch('/appointments/:id', async (req, res) => {
+      const { id } = req.params;
+      const updatedData = req.body;
+      const result = await collectionBokingDoctor.updateOne({ _id: new ObjectId(id) }, { $set: updatedData });
+      res.json(result)
+    })
+   
 
     
 
