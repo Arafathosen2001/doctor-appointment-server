@@ -20,6 +20,15 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+const verifyToken = (req, res, next) => {
+  const authHeader = req?.headers.authorization;
+  const token = authHeader?.split(' ')[1];
+  if(!authHeader || !token){
+    return res.status(401).json({message:'Unauthorized'})
+  }
+
+  next();
+}
 
 async function run() {
   try {
@@ -31,14 +40,7 @@ async function run() {
         const result = await collectionDoctor.find().toArray();
         res.send(result);
     })
-    app.get('/doctors/:did', (req,res,next) => {
-      const hed=req.headers.authorization;
-      if(hed!=='loged'){
-        res.status(401).json({message:'Unauthorized'})
-      }
-      console.log(hed);
-      next();
-    } ,async(req, res) => {
+    app.get('/doctors/:did', verifyToken, async(req, res) => {
       const id = req.params.did
       // console.log(id)
       const result = await collectionDoctor.findOne({ _id: new ObjectId(id) });
