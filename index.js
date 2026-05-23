@@ -9,6 +9,7 @@ app.use(express.json());
 
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { createRemoteJWKSet, jwtVerify } = require('jose-cjs');
 const port = process.env.PORT;
 const uri = process.env.MONGODB_URI;
 
@@ -20,19 +21,29 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
-const verifyToken = (req, res, next) => {
-  const authHeader = req?.headers.authorization;
+const JWKS = createRemoteJWKSet(new URL(`${process.env.CLIENT_URL}/api/auth/jwks`));
+const verifyToken = async (req, res, next) => {
+  const authHeader = req?.headers.authorization; 
   const token = authHeader?.split(' ')[1];
   if(!authHeader || !token){
     return res.status(401).json({message:'Unauthorized'})
   }
+ 
+  
+  try {
+    const { payload } = await jwtVerify(token, JWKS)
+    console.log(payload)
+    next();
+  } catch (error) {
+    return res.status(401).json({message:'Unauthorized'})
+  }
 
-  next();
+  
 }
 
 async function run() {
   try {
-      await client.connect();
+      // await client.connect();
         const db = client.db('doctorAppointment');
         const collectionDoctor = db.collection('doctor');
         const collectionBokingDoctor = db.collection('appointments');
@@ -76,7 +87,7 @@ async function run() {
 
 
 
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // await client.close();
