@@ -31,9 +31,16 @@ async function run() {
         const result = await collectionDoctor.find().toArray();
         res.send(result);
     })
-    app.get('/doctors/:did', async(req, res) => {
+    app.get('/doctors/:did', (req,res,next) => {
+      const hed=req.headers.authorization;
+      if(hed!=='loged'){
+        res.status(401).json({message:'Unauthorized'})
+      }
+      console.log(hed);
+      next();
+    } ,async(req, res) => {
       const id = req.params.did
-      console.log(id)
+      // console.log(id)
       const result = await collectionDoctor.findOne({ _id: new ObjectId(id) });
       res.send(result)
     })
@@ -54,6 +61,11 @@ async function run() {
       const { id } = req.params;
       const updatedData = req.body;
       const result = await collectionBokingDoctor.updateOne({ _id: new ObjectId(id) }, { $set: updatedData });
+      res.json(result)
+    })
+     app.delete('/appointments/:id', async (req, res) => {
+      const { id } = req.params;
+      const result = await collectionBokingDoctor.deleteOne({ _id: new ObjectId(id) });
       res.json(result)
     })
    
